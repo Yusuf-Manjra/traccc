@@ -34,6 +34,12 @@ jobs:
       run:
         shell: bash
     steps:
+      - name: Dependencies
+        run: apt-get install -y git-lfs
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          lfs: true
       - name: Configure
         run: |
           source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.platform.name }}
