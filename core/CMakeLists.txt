@@ -51,7 +51,6 @@ traccc_add_library( traccc_core core TYPE SHARED
   "include/traccc/seeding/detail/singlet.hpp"
   "include/traccc/seeding/detail/seeding_config.hpp"
   "include/traccc/seeding/detail/spacepoint_grid.hpp"
-  "include/traccc/seeding/detail/bin_finder.hpp"
   "include/traccc/seeding/seed_selecting_helper.hpp"
   "include/traccc/seeding/seed_filtering.hpp"
   "src/seeding/seed_filtering.cpp"
@@ -70,4 +69,5 @@ traccc_add_library( traccc_core core TYPE SHARED
   "include/traccc/seeding/spacepoint_binning.hpp"
   "src/seeding/spacepoint_binning.cpp" )
 target_link_libraries( traccc_core
-  PUBLIC Eigen3::Eigen vecmem::core detray::core ActsCore ActsPluginJson traccc::algebra )
+  PUBLIC Eigen3::Eigen vecmem::core detray::core ActsCore ActsPluginJson
+         traccc::Thrust traccc::algebra )

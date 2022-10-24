@@ -10,7 +10,9 @@
 #include "traccc/cuda/utils/definitions.hpp"
 
 // Project include(s).
-#include "traccc/device/get_prefix_sum.hpp"
+#include "traccc/cuda/utils/make_prefix_sum_buff.hpp"
+#include "traccc/device/fill_prefix_sum.hpp"
+#include "traccc/device/make_prefix_sum_buffer.hpp"
 #include "traccc/edm/device/doublet_counter.hpp"
 #include "traccc/seeding/device/count_doublets.hpp"
 #include "traccc/seeding/device/count_triplets.hpp"
@@ -49,7 +51,8 @@ __global__ void find_doublets(
     device::doublet_counter_container_types::const_view doublet_counter,
     vecmem::data::vector_view<const device::prefix_sum_element_t>
         doublet_prefix_sum,
-    doublet_container_view mb_doublets, doublet_container_view mt_doublets) {
+    doublet_container_types::view mb_doublets,
+    doublet_container_types::view mt_doublets) {
 
     device::find_doublets(threadIdx.x + blockIdx.x * blockDim.x, config,
                           sp_grid, doublet_counter, doublet_prefix_sum,
@@ -62,7 +65,8 @@ __global__ void count_triplets(
     device::doublet_counter_container_types::const_view doublet_counter_view,
     vecmem::data::vector_view<const device::prefix_sum_element_t>
         doublet_prefix_sum,
-    doublet_container_view mb_doublets, doublet_container_view mt_doublets,
+    doublet_container_types::const_view mb_doublets,
+    doublet_container_types::const_view mt_doublets,
     device::triplet_counter_container_types::view triplet_view) {
 
     device::count_triplets(threadIdx.x + blockIdx.x * blockDim.x, config,
@@ -74,15 +78,15 @@ __global__ void find_triplets(
     seedfinder_config config, seedfilter_config filter_config,
     sp_grid_const_view sp_grid,
     device::doublet_counter_container_types::const_view doublet_counter_view,
-    doublet_container_view mb_doublets, doublet_container_view mt_doublets,
+    doublet_container_types::const_view mt_doublets,
     device::triplet_counter_container_types::const_view tc_view,
     vecmem::data::vector_view<const device::prefix_sum_element_t>
         triplet_prefix_sum,
-    triplet_container_view triplet_view) {
+    triplet_container_types::view triplet_view) {
 
     device::find_triplets(threadIdx.x + blockIdx.x * blockDim.x, config,
                           filter_config, sp_grid, doublet_counter_view,
-                          mb_doublets, mt_doublets, tc_view, triplet_prefix_sum,
+                          mt_doublets, tc_view, triplet_prefix_sum,
                           triplet_view);
 }
 /// CUDA kernel for running @c traccc::device::update_triplet_weights
@@ -90,7 +94,7 @@ __global__ void update_triplet_weights(
     seedfilter_config filter_config, sp_grid_const_view sp_grid,
     vecmem::data::vector_view<const device::prefix_sum_element_t>
         triplet_prefix_sum,
-    triplet_container_view triplet_view) {
+    triplet_container_types::view triplet_view) {
 
     // Array for temporary storage of quality parameters for comparing triplets
     // within weight updating kernel
@@ -111,7 +115,8 @@ __global__ void select_seeds(
     vecmem::data::vector_view<const device::prefix_sum_element_t> dc_ps_view,
     device::doublet_counter_container_types::const_view
         doublet_counter_container,
-    triplet_container_view tc_view, vecmem::data::vector_view<seed> seed_view) {
+    triplet_container_types::const_view tc_view,
+    seed_collection_types::view seed_view) {
 
     // Array for temporary storage of triplets for comparing within seed
     // selecting kernel
@@ -128,8 +133,11 @@ __global__ void select_seeds(
 }  // namespace kernels
 
 seed_finding::seed_finding(const seedfinder_config& config,
+                           const seedfilter_config& filter_config,
                            const traccc::memory_resource& mr)
-    : m_seedfinder_config(config), m_mr(mr) {
+    : m_seedfinder_config(config.toInternalUnits()),
+      m_seedfilter_config(filter_config.toInternalUnits()),
+      m_mr(mr) {
 
     // Initialize m_copy ptr based on memory resources that were given
     if (mr.host) {
@@ -139,55 +147,32 @@ seed_finding::seed_finding(const seedfinder_config& config,
     }
 }
 
-vecmem::data::vector_buffer<seed> seed_finding::operator()(
+seed_collection_types::buffer seed_finding::operator()(
     const spacepoint_container_types::const_view& spacepoints_view,
     const sp_grid_const_view& g2_view) const {
+
     // Get the sizes from the grid view
     auto grid_sizes = m_copy->get_sizes(g2_view._data_view);
 
-    return this->operator()(spacepoints_view, g2_view, grid_sizes);
-}
-
-vecmem::data::vector_buffer<seed> seed_finding::operator()(
-    const spacepoint_container_types::buffer& spacepoints_buffer,
-    const sp_grid_buffer& g2_buffer) const {
-    // Get the sizes from the grid buffer
-    auto grid_sizes = m_copy->get_sizes(g2_buffer._buffer);
-
-    return this->operator()(spacepoints_buffer, g2_buffer, grid_sizes);
-}
-
-vecmem::data::vector_buffer<seed> seed_finding::operator()(
-    const spacepoint_container_types::const_view& spacepoints_view,
-    const sp_grid_const_view& g2_view,
-    const std::vector<unsigned int>& grid_sizes) const {
-
-    // Get the prefix sum for the spacepoint grid using buffer.
-    const device::prefix_sum_t sp_grid_prefix_sum = device::get_prefix_sum(
-        grid_sizes, (m_mr.host ? *(m_mr.host) : m_mr.main));
+    // Create prefix sum buffer
+    vecmem::data::vector_buffer sp_grid_prefix_sum_buff =
+        make_prefix_sum_buff(grid_sizes, *m_copy, m_mr);
 
     // Set up the doublet counter buffer.
     device::doublet_counter_container_types::buffer doublet_counter_buffer =
         device::make_doublet_counter_buffer(grid_sizes, *m_copy, m_mr.main,
                                             m_mr.host);
 
-    // Set up the buffer of the prefix sum and its view
-    vecmem::data::vector_buffer<device::prefix_sum_element_t>
-        sp_grid_prefix_sum_buff(sp_grid_prefix_sum.size(), m_mr.main);
-    m_copy->setup(sp_grid_prefix_sum_buff);
-    (*m_copy)(vecmem::get_data(sp_grid_prefix_sum), sp_grid_prefix_sum_buff);
-    vecmem::data::vector_view<device::prefix_sum_element_t>
-        sp_grid_prefix_sum_view = sp_grid_prefix_sum_buff;
-
     // Calculate the number of threads and thread blocks to run the doublet
     // counting kernel for.
     const unsigned int nDoubletCountThreads = WARP_SIZE * 2;
     const unsigned int nDoubletCountBlocks =
-        sp_grid_prefix_sum.size() / nDoubletCountThreads + 1;
+        (sp_grid_prefix_sum_buff.size() + nDoubletCountThreads - 1) /
+        nDoubletCountThreads;
 
     // Count the number of doublets that we need to produce.
     kernels::count_doublets<<<nDoubletCountBlocks, nDoubletCountThreads>>>(
-        m_seedfinder_config, g2_view, sp_grid_prefix_sum_view,
+        m_seedfinder_config, g2_view, sp_grid_prefix_sum_buff,
         doublet_counter_buffer);
     CUDA_ERROR_CHECK(cudaGetLastError());
     CUDA_ERROR_CHECK(cudaDeviceSynchronize());
@@ -201,29 +186,21 @@ vecmem::data::vector_buffer<seed> seed_finding::operator()(
     device::doublet_buffer_pair doublet_buffers = device::make_doublet_buffers(
         doublet_counter_buffer, *m_copy, m_mr.main, m_mr.host);
 
-    // Get the prefix sum for the doublet counter buffer.
-    const device::prefix_sum_t doublet_prefix_sum =
-        device::get_prefix_sum(doublet_counter_buffer.items,
-                               (m_mr.host ? *(m_mr.host) : m_mr.main), *m_copy);
-
-    // Set up the buffer of the prefix sum and its view
-    vecmem::data::vector_buffer<device::prefix_sum_element_t>
-        doublet_prefix_sum_buff(doublet_prefix_sum.size(), m_mr.main);
-    m_copy->setup(doublet_prefix_sum_buff);
-    (*m_copy)(vecmem::get_data(doublet_prefix_sum), doublet_prefix_sum_buff);
-    vecmem::data::vector_view<device::prefix_sum_element_t>
-        doublet_prefix_sum_view = doublet_prefix_sum_buff;
+    // Create prefix sum buffer
+    vecmem::data::vector_buffer doublet_prefix_sum_buff = make_prefix_sum_buff(
+        m_copy->get_sizes(doublet_counter_buffer.items), *m_copy, m_mr);
 
     // Calculate the number of threads and thread blocks to run the doublet
     // finding kernel for.
     const unsigned int nDoubletFindThreads = WARP_SIZE * 2;
     const unsigned int nDoubletFindBlocks =
-        doublet_prefix_sum.size() / nDoubletFindThreads + 1;
+        (doublet_prefix_sum_buff.size() + nDoubletFindThreads - 1) /
+        nDoubletFindThreads;
 
     // Find all of the spacepoint doublets.
     kernels::find_doublets<<<nDoubletFindBlocks, nDoubletFindThreads>>>(
         m_seedfinder_config, g2_view, doublet_counter_buffer,
-        doublet_prefix_sum_view, doublet_buffers.middleBottom,
+        doublet_prefix_sum_buff, doublet_buffers.middleBottom,
         doublet_buffers.middleTop);
     CUDA_ERROR_CHECK(cudaGetLastError());
     CUDA_ERROR_CHECK(cudaDeviceSynchronize());
@@ -233,27 +210,21 @@ vecmem::data::vector_buffer<seed> seed_finding::operator()(
         doublet_counts.begin(), doublet_counts.end(), mb_buffer_sizes.begin(),
         [](const device::doublet_counter_header& dc) { return dc.m_nMidBot; });
 
-    // Get the prefix sum for the midBot doublets using buffer.
-    const device::prefix_sum_t mb_prefix_sum =
-        device::get_prefix_sum(doublet_buffers.middleBottom.items,
-                               (m_mr.host ? *(m_mr.host) : m_mr.main), *m_copy);
-
-    // Set up the triplet counter buffer and its view
+    // Set up the triplet counter buffer
     device::triplet_counter_container_types::buffer triplet_counter_buffer =
         device::make_triplet_counter_buffer(mb_buffer_sizes, *m_copy, m_mr.main,
                                             m_mr.host);
 
-    // Set up the buffer of the prefix sum and its view
-    vecmem::data::vector_buffer<device::prefix_sum_element_t>
-        mb_prefix_sum_buff(mb_prefix_sum.size(), m_mr.main);
-    m_copy->setup(mb_prefix_sum_buff);
-    (*m_copy)(vecmem::get_data(mb_prefix_sum), mb_prefix_sum_buff);
+    // Create prefix sum buffer
+    vecmem::data::vector_buffer mb_prefix_sum_buff = make_prefix_sum_buff(
+        m_copy->get_sizes(doublet_buffers.middleBottom.items), *m_copy, m_mr);
 
     // Calculate the number of threads and thread blocks to run the doublet
     // counting kernel for.
     const unsigned int nTripletCountThreads = WARP_SIZE * 2;
     const unsigned int nTripletCountBlocks =
-        mb_prefix_sum.size() / nTripletCountThreads + 1;
+        (mb_prefix_sum_buff.size() + nTripletCountThreads - 1) /
+        nTripletCountThreads;
 
     // Count the number of triplets that we need to produce.
     kernels::count_triplets<<<nTripletCountBlocks, nTripletCountThreads>>>(
@@ -264,52 +235,41 @@ vecmem::data::vector_buffer<seed> seed_finding::operator()(
     CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 
     // Set up the triplet buffer.
-    triplet_container_buffer triplet_buffer = device::make_triplet_buffer(
-        triplet_counter_buffer, *m_copy, m_mr.main, m_mr.host);
-    triplet_container_view triplet_view(triplet_buffer);
+    triplet_container_types::buffer triplet_buffer =
+        device::make_triplet_buffer(triplet_counter_buffer, *m_copy, m_mr.main,
+                                    m_mr.host);
 
-    // Get the prefix sum for the triplet counter buffer.
-    const device::prefix_sum_t triplet_counter_prefix_sum =
-        device::get_prefix_sum(triplet_counter_buffer.items,
-                               (m_mr.host ? *(m_mr.host) : m_mr.main), *m_copy);
-
-    // Set up the buffer of the prefix sum and its view
-    vecmem::data::vector_buffer<device::prefix_sum_element_t>
-        triplet_counter_prefix_sum_buff(triplet_counter_prefix_sum.size(),
-                                        m_mr.main);
-    m_copy->setup(triplet_counter_prefix_sum_buff);
-    (*m_copy)(vecmem::get_data(triplet_counter_prefix_sum),
-              triplet_counter_prefix_sum_buff);
+    // Create prefix sum buffer
+    vecmem::data::vector_buffer triplet_counter_prefix_sum_buff =
+        make_prefix_sum_buff(m_copy->get_sizes(triplet_counter_buffer.items),
+                             *m_copy, m_mr);
 
     // Calculate the number of threads and thread blocks to run the triplet
     // finding kernel for.
     const unsigned int nTripletFindThreads = WARP_SIZE * 2;
     const unsigned int nTripletFindBlocks =
-        triplet_counter_prefix_sum.size() / nTripletFindThreads + 1;
+        (triplet_counter_prefix_sum_buff.size() + nTripletFindThreads - 1) /
+        nTripletFindThreads;
 
     // Find all of the spacepoint triplets.
     kernels::find_triplets<<<nTripletFindBlocks, nTripletFindThreads>>>(
         m_seedfinder_config, m_seedfilter_config, g2_view,
-        doublet_counter_buffer, doublet_buffers.middleBottom,
-        doublet_buffers.middleTop, triplet_counter_buffer,
-        triplet_counter_prefix_sum_buff, triplet_buffer);
+        doublet_counter_buffer, doublet_buffers.middleTop,
+        triplet_counter_buffer, triplet_counter_prefix_sum_buff,
+        triplet_buffer);
     CUDA_ERROR_CHECK(cudaGetLastError());
     CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 
-    const device::prefix_sum_t triplet_prefix_sum = device::get_prefix_sum(
-        triplet_buffer.items, (m_mr.host ? *(m_mr.host) : m_mr.main), *m_copy);
-
-    // Set up the buffer of the prefix sum and its view
-    vecmem::data::vector_buffer<device::prefix_sum_element_t>
-        triplet_prefix_sum_buff(triplet_prefix_sum.size(), m_mr.main);
-    m_copy->setup(triplet_prefix_sum_buff);
-    (*m_copy)(vecmem::get_data(triplet_prefix_sum), triplet_prefix_sum_buff);
+    // Create prefix sum buffer
+    vecmem::data::vector_buffer triplet_prefix_sum_buff = make_prefix_sum_buff(
+        m_copy->get_sizes(triplet_buffer.items), *m_copy, m_mr);
 
     // Calculate the number of threads and thread blocks to run the weight
     // updating kernel for.
     const unsigned int nWeightUpdatingThreads = WARP_SIZE * 2;
     const unsigned int nWeightUpdatingBlocks =
-        triplet_prefix_sum.size() / nWeightUpdatingThreads + 1;
+        (triplet_prefix_sum_buff.size() + nWeightUpdatingThreads - 1) /
+        nWeightUpdatingThreads;
 
     // Update the weights of all spacepoint triplets.
     kernels::update_triplet_weights<<<
@@ -331,14 +291,15 @@ vecmem::data::vector_buffer<seed> seed_finding::operator()(
         n_triplets += h.m_nTriplets;
     }
 
-    vecmem::data::vector_buffer<seed> seed_buffer(n_triplets, 0, m_mr.main);
+    seed_collection_types::buffer seed_buffer(n_triplets, 0, m_mr.main);
     m_copy->setup(seed_buffer);
 
     // Calculate the number of threads and thread blocks to run the seed
     // selecting kernel for.
     const unsigned int nSeedSelectingThreads = WARP_SIZE * 2;
     const unsigned int nSeedSelectingBlocks =
-        doublet_prefix_sum.size() / nSeedSelectingThreads + 1;
+        (doublet_prefix_sum_buff.size() + nSeedSelectingThreads - 1) /
+        nSeedSelectingThreads;
 
     // Create seeds out of selected triplets
     kernels::select_seeds<<<nSeedSelectingBlocks, nSeedSelectingThreads,

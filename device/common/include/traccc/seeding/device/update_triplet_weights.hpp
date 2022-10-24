@@ -9,7 +9,7 @@
 
 // Project include(s).
 #include "traccc/definitions/qualifiers.hpp"
-#include "traccc/device/get_prefix_sum.hpp"
+#include "traccc/device/fill_prefix_sum.hpp"
 #include "traccc/edm/device/triplet_counter.hpp"
 #include "traccc/seeding/detail/seeding_config.hpp"
 #include "traccc/seeding/detail/spacepoint_grid.hpp"
@@ -31,12 +31,12 @@ namespace traccc::device {
 /// @param[out] triplet_view Container storing the triplets
 ///
 TRACCC_HOST_DEVICE
-void update_triplet_weights(
+inline void update_triplet_weights(
     const std::size_t globalIndex, const seedfilter_config& filter_config,
     const sp_grid_const_view& sp_view,
     const vecmem::data::vector_view<const prefix_sum_element_t>&
         triplet_ps_view,
-    scalar* data, triplet_container_view triplet_view);
+    scalar* data, triplet_container_types::view triplet_view);
 
 }  // namespace traccc::device
 

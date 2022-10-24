@@ -24,26 +24,6 @@ struct seed {
     scalar weight;
     scalar z_vertex;
 
-    seed() = default;
-    seed(const seed&) = default;
-
-    TRACCC_HOST_DEVICE
-    seed& operator=(const seed& aSeed) {
-
-        spB_link.first = aSeed.spB_link.first;
-        spB_link.second = aSeed.spB_link.second;
-
-        spM_link.first = aSeed.spM_link.first;
-        spM_link.second = aSeed.spM_link.second;
-
-        spT_link.first = aSeed.spT_link.first;
-        spT_link.second = aSeed.spT_link.second;
-
-        weight = aSeed.weight;
-        z_vertex = aSeed.z_vertex;
-        return *this;
-    }
-
     TRACCC_HOST_DEVICE
     std::array<measurement, 3> get_measurements(
         const spacepoint_container_types::const_view& spacepoints_view) const {
@@ -78,36 +58,7 @@ TRACCC_HOST std::vector<std::array<spacepoint, 3>> get_spacepoint_vector(
     return result;
 }
 
-/// Container of internal_spacepoint for an event
-template <template <typename> class vector_t>
-using seed_collection = vector_t<seed>;
-
-/// Convenience declaration for the seed collection type to use
-/// in host code
-using host_seed_collection = seed_collection<vecmem::vector>;
-
-/// Convenience declaration for the seed collection type to use
-/// in device code
-using device_seed_collection = seed_collection<vecmem::device_vector>;
-
-/// Convenience declaration for the seed container type to use in
-/// host code
-using host_seed_container = host_container<unsigned int, seed>;
-
-/// Convenience declaration for the seed container type to use in
-/// device code
-using device_seed_container = device_container<unsigned int, seed>;
-
-/// Convenience declaration for the seed container data type to
-/// use in host code
-using seed_container_data = container_data<unsigned int, seed>;
-
-/// Convenience declaration for the seed container buffer type to
-/// use in host code
-using seed_container_buffer = container_buffer<unsigned int, seed>;
-
-/// Convenience declaration for the seed container view type to
-/// use in host code
-using seed_container_view = container_view<unsigned int, seed>;
+/// Declare all seed collection types
+using seed_collection_types = collection_types<seed>;
 
 }  // namespace traccc

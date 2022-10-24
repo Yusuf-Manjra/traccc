@@ -6,7 +6,7 @@
 
 # Set up the project.
 cmake_minimum_required( VERSION 3.9 )
-project( traccc VERSION 0.1.0 LANGUAGES CXX )
+project( traccc VERSION 0.2.0 LANGUAGES CXX )
 
 # Set up the used C++ standard(s).
 set( CMAKE_CXX_STANDARD 17 CACHE STRING "The (host) C++ standard to use" )
@@ -47,9 +47,15 @@ endif()
 option( TRACCC_BUILD_CUDA "Build the CUDA sources included in traccc"
    ${TRACCC_BUILD_CUDA_DEFAULT} )
 option( TRACCC_BUILD_SYCL "Build the SYCL sources included in traccc" FALSE )
-option( TRACCC_BUILD_FUTHARK "Build the Futhark sources included in traccc" FALSE)
+option( TRACCC_BUILD_FUTHARK "Build the Futhark sources included in traccc"
+   FALSE )
+option( TRACCC_BUILD_KOKKOS "Build the Kokkos sources included in traccc"
+   FALSE )
 option( TRACCC_BUILD_TESTING "Build the (unit) tests of traccc" TRUE )
 option( TRACCC_BUILD_EXAMPLES "Build the examples of traccc" TRUE )
+
+# Flags controlling the meta-build system.
+option( TRACCC_USE_SYSTEM_LIBS "Use system libraries be default" FALSE )
 
 # Clean up.
 unset( TRACCC_BUILD_CUDA_DEFAULT )
@@ -59,7 +65,7 @@ option( TRACCC_SETUP_VECMEM
    "Set up the VecMem target(s) explicitly" TRUE )
 option( TRACCC_USE_SYSTEM_VECMEM
    "Pick up an existing installation of VecMem from the build environment"
-   FALSE )
+   ${TRACCC_USE_SYSTEM_LIBS} )
 if( TRACCC_SETUP_VECMEM )
    if( TRACCC_USE_SYSTEM_VECMEM )
       find_package( vecmem 0.7.0 REQUIRED COMPONENTS LANGUAGE )
@@ -75,7 +81,7 @@ option( TRACCC_SETUP_EIGEN3
    "Set up the Eigen3 target(s) explicitly" TRUE )
 option( TRACCC_USE_SYSTEM_EIGEN3
    "Pick up an existing installation of Eigen3 from the build environment"
-   FALSE )
+   ${TRACCC_USE_SYSTEM_LIBS} )
 if( TRACCC_SETUP_EIGEN3 )
    if( TRACCC_USE_SYSTEM_EIGEN3 )
       find_package( Eigen3 REQUIRED )
@@ -84,12 +90,46 @@ if( TRACCC_SETUP_EIGEN3 )
    endif()
 endif()
 
+# Set up Thrust.
+option( TRACCC_SETUP_THRUST
+   "Set up the Thrust target(s) explicitly" TRUE )
+option( TRACCC_USE_SYSTEM_THRUST
+   "Pick up an existing installation of Thrust from the build environment"
+   ${TRACCC_USE_SYSTEM_LIBS} )
+if( TRACCC_SETUP_THRUST )
+   if( TRACCC_USE_SYSTEM_THRUST )
+      find_package( Thrust REQUIRED )
+   else()
+      add_subdirectory( extern/thrust )
+   endif()
+endif()
+# Set up an IMPORTED library on top of the Thrust library/libraries. One that
+# the TRACCC/Detray code could depend on publicly.
+set( TRACCC_THRUST_OPTIONS "" CACHE STRING
+   "Extra options for configuring how Thrust should be used" )
+mark_as_advanced( TRACCC_THRUST_OPTIONS )
+thrust_create_target( traccc::Thrust ${TRACCC_THRUST_OPTIONS} )
+
+# Set up Kokkos.
+option( TRACCC_SETUP_KOKKOS
+   "Set up the Kokkos library" TRUE )
+option( TRACCC_USE_SYSTEM_KOKKOS
+   "Pick up an existing installation of Kokkos from the build environment"
+   ${TRACCC_USE_SYSTEM_LIBS} )
+if( TRACCC_SETUP_KOKKOS )
+   if( TRACCC_USE_SYSTEM_KOKKOS )
+      find_package( Kokkos REQUIRED )
+   else()
+      add_subdirectory( extern/kokkos )
+   endif()
+endif()
+
 # Set up Algebra Plugins.
 option( TRACCC_SETUP_ALGEBRA_PLUGINS
    "Set up the Algebra Plugins target(s) explicitly" TRUE )
 option( TRACCC_USE_SYSTEM_ALGEBRA_PLUGINS
    "Pick up an existing installation of Algebra Plugins from the build environment"
-   FALSE )
+   ${TRACCC_USE_SYSTEM_LIBS} )
 if( TRACCC_SETUP_ALGEBRA_PLUGINS )
    if( TRACCC_USE_SYSTEM_ALGEBRA_PLUGINS )
       find_package( algebra-plugins REQUIRED )
@@ -103,7 +143,7 @@ option( TRACCC_SETUP_DFELIBS
    "Set up the dfelibs target(s) explicitly" TRUE )
 option( TRACCC_USE_SYSTEM_DFELIBS
    "Pick up an existing installation of dfelibs from the build environment"
-   FALSE )
+   ${TRACCC_USE_SYSTEM_LIBS} )
 if( TRACCC_SETUP_DFELIBS )
    if( TRACCC_USE_SYSTEM_DFELIBS )
       find_package( dfelibs REQUIRED )
@@ -117,7 +157,7 @@ option( TRACCC_SETUP_DETRAY
    "Set up the Detray target(s) explicitly" TRUE )
 option( TRACCC_USE_SYSTEM_DETRAY
    "Pick up an existing installation of Detray from the build environment"
-   FALSE )
+   ${TRACCC_USE_SYSTEM_LIBS} )
 if( TRACCC_SETUP_DETRAY )
    if( TRACCC_USE_SYSTEM_DETRAY )
       find_package( detray REQUIRED )
@@ -131,7 +171,7 @@ option( TRACCC_SETUP_ACTS
    "Set up the Acts target(s) explicitly" TRUE )
 option( TRACCC_USE_SYSTEM_ACTS
    "Pick up an existing installation of Acts from the build environment"
-   FALSE )
+   ${TRACCC_USE_SYSTEM_LIBS} )
 if( TRACCC_SETUP_ACTS )
    if( TRACCC_USE_SYSTEM_ACTS )
       find_package( Acts REQUIRED )
@@ -145,7 +185,7 @@ option( TRACCC_SETUP_GOOGLETEST
    "Set up the GoogleTest target(s) explicitly" TRUE )
 option( TRACCC_USE_SYSTEM_GOOGLETEST
    "Pick up an existing installation of GoogleTest from the build environment"
-   FALSE )
+   ${TRACCC_USE_SYSTEM_LIBS} )
 if( TRACCC_SETUP_GOOGLETEST )
    if( TRACCC_USE_SYSTEM_GOOGLETEST )
       find_package( GTest REQUIRED )
