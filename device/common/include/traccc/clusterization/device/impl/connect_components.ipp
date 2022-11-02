@@ -12,9 +12,9 @@ namespace traccc::device {
 TRACCC_HOST_DEVICE
 inline void connect_components(
     std::size_t globalIndex, const cell_container_types::const_view& cells_view,
-    vecmem::data::jagged_vector_view<unsigned int> sparse_ccl_indices_view,
-    vecmem::data::vector_view<std::size_t> cluster_prefix_sum_view,
-    vecmem::data::vector_view<const device::prefix_sum_element_t>
+    vecmem::data::jagged_vector_view<unsigned int>& sparse_ccl_indices_view,
+    vecmem::data::vector_view<std::size_t>& cluster_prefix_sum_view,
+    vecmem::data::vector_view<const device::prefix_sum_element_t>&
         cells_prefix_sum_view,
     cluster_container_types::view clusters_view) {
 

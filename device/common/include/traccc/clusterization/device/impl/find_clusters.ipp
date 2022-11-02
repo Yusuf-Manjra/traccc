@@ -12,8 +12,12 @@ namespace traccc::device {
 TRACCC_HOST_DEVICE
 inline void find_clusters(
     std::size_t globalIndex, const cell_container_types::const_view& cells_view,
-    vecmem::data::jagged_vector_view<unsigned int> sparse_ccl_indices_view,
-    vecmem::data::vector_view<std::size_t> clusters_per_module_view) {
+    vecmem::data::jagged_vector_view<unsigned int>& sparse_ccl_indices_view,
+    vecmem::data::vector_view<std::size_t>& clusters_per_module_view) {
+
+    // Ignore if idx is out of range
+    //if (globalIndex >= cells_view.cells.size())
+        //return;
 
     // Initialize the device container for cells
     cell_container_types::const_device cells_device(cells_view);
