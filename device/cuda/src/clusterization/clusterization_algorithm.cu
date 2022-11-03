@@ -106,7 +106,7 @@ clusterization_algorithm::output_type clusterization_algorithm::operator()(
         num_modules = m_copy->get_size(cells_view.headers);
 
     // Work block size for kernel execution
-    const std::size_t threadsPerBlock = 64;
+    const std::size_t threadsPerBlock = 512;
 
     // Get the sizes of the cells in each module
     const std::vector<
