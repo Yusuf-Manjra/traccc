@@ -35,11 +35,14 @@ inline void estimate_track_params(
     vector3 bfield = {0, 0, 2};
 
     const seed& this_seed = seeds_device.at(globalIndex);
-    bound_vector& param = params_device[globalIndex].vector();
 
     // Get bound track parameter
-    param = seed_to_bound_vector(spacepoints_device, this_seed, bfield,
-                                 PION_MASS_MEV);
+    bound_track_parameters track_params;
+    track_params.set_vector(seed_to_bound_vector(spacepoints_device, this_seed,
+                                                 bfield, PION_MASS_MEV));
+
+    // Save the object into global memory.
+    params_device[globalIndex] = track_params;
 }
 
 }  // namespace traccc::device

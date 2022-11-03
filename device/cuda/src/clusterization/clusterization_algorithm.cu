@@ -99,23 +99,19 @@ clusterization_algorithm::clusterization_algorithm(
 }
 
 clusterization_algorithm::output_type clusterization_algorithm::operator()(
-    const cell_container_types::host& cells_per_event) const {
-
-    // Vecmem copy object for moving the data between host and device
-    vecmem::copy copy;
+    const cell_container_types::const_view& cells_view) const {
 
     // Number of modules
-    unsigned int num_modules = cells_per_event.size();
+    const cell_container_types::const_device::header_vector::size_type
+        num_modules = m_copy->get_size(cells_view.headers);
 
     // Work block size for kernel execution
-    std::size_t threadsPerBlock = 64;
-
-    // Get the view of the cells container
-    auto cells_data =
-        get_data(cells_per_event, (m_mr.host ? m_mr.host : &(m_mr.main)));
+    const std::size_t threadsPerBlock = 64;
 
     // Get the sizes of the cells in each module
-    auto cell_sizes = copy.get_sizes(cells_data.items);
+    const std::vector<
+        cell_container_types::const_device::item_vector::value_type::size_type>
+        cell_sizes = m_copy->get_sizes(cells_view.items);
 
     /*
      * Helper container for sparse CCL calculations.
@@ -161,9 +157,6 @@ clusterization_algorithm::output_type clusterization_algorithm::operator()(
         num_modules, m_mr.main);
     m_copy->setup(cl_per_module_prefix_buff);
 
-    // Create views to pass to cluster finding kernel
-    const cell_container_types::const_view cells_view(cells_data);
-
     // Calculating grid size for cluster finding kernel
     std::size_t blocksPerGrid =
         (num_modules + threadsPerBlock - 1) / threadsPerBlock;
@@ -172,11 +165,11 @@ clusterization_algorithm::output_type clusterization_algorithm::operator()(
     kernels::find_clusters<<<blocksPerGrid, threadsPerBlock>>>(
         cells_view, sparse_ccl_indices_buff, cl_per_module_prefix_buff);
 
-
     // Create prefix sum buffer
     vecmem::data::vector_buffer cells_prefix_sum_buff =
         make_prefix_sum_buff(cell_sizes, *m_copy, m_mr);
 
+    // Wait here for the find_clusters kernel to finish
     CUDA_ERROR_CHECK(cudaGetLastError());
     CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 
@@ -238,8 +231,6 @@ clusterization_algorithm::output_type clusterization_algorithm::operator()(
     kernels::connect_components<<<blocksPerGrid, threadsPerBlock>>>(
         cells_view, sparse_ccl_indices_buff, cl_per_module_prefix_buff,
         cells_prefix_sum_buff, clusters_buffer);
-    CUDA_ERROR_CHECK(cudaGetLastError());
-    CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 
     // Resizable buffer for the measurements
     measurement_container_types::buffer measurements_buffer{
@@ -261,6 +252,10 @@ clusterization_algorithm::output_type clusterization_algorithm::operator()(
     // Calculating grid size for measurements creation kernel (block size 64)
     blocksPerGrid = (clusters_buffer.headers.size() - 1 + threadsPerBlock) /
                     threadsPerBlock;
+
+    // Wait here for the connect_components kernel to finish
+    CUDA_ERROR_CHECK(cudaGetLastError());
+    CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 
     // Invoke measurements creation will call create measurements kernel
     kernels::create_measurements<<<blocksPerGrid, threadsPerBlock>>>(
