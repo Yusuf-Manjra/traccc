@@ -105,7 +105,7 @@ jobs:
             tar --bzip2 -xf boost_1_80_0.tar.bz2
             cd ./boost_1_80_0
             ./bootstrap.sh --with-libraries=filesystem program_options
-            ./b2 install
+            sudo ./b2 install
             wget https://root.cern/download/root_v6.24.02.Linux-ubuntu20-x86_64-gcc9.3.tar.gz
             tar -xzf root_v6.24.02.Linux-ubuntu20-x86_64-gcc9.3.tar.gz
             source root/bin/thisroot.sh
