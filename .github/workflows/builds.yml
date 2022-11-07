@@ -106,9 +106,7 @@ jobs:
             source root/bin/thisroot.sh
             mkdir build
             cmake -S . -B ./build -D TRACCC_BUILD_EXAMPLES=FALSE
-            cd build
-            make clean
-            build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make -j4
+            build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build --clean-first
         - name: Run sonar-scanner
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
