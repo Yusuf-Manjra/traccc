@@ -98,9 +98,10 @@ jobs:
         - name: Get Dependencies
           # wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
           # sudo sh cuda_11.8.0_520.61.05_linux.run
+          # sudo apt-get install dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev python libssl-dev
           run: |
             sudo apt-get update
-            sudo apt-get -y install dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev python libssl-dev
+            sudo apt-get -ys install g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev libssl-dev
             wget https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.bz2
             tar --bzip2 -xf boost_1_80_0.tar.bz2
             mkdir boost-install
