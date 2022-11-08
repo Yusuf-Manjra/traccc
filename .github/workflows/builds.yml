@@ -96,10 +96,11 @@ jobs:
             unzip -o $HOME/.sonar/build-wrapper-linux-x86.zip -d $HOME/.sonar/
             echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
         - name: Get Dependencies
+          # wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
+          # sudo sh cuda_11.8.0_520.61.05_linux.run
           run: |
-            udo apt-get update
-            sudo apt-get -y install dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev \
-            libxft-dev libxext-dev python libssl-dev
+            sudo apt-get update
+            sudo apt-get -y install dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev python libssl-dev
             wget https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.bz2
             tar --bzip2 -xf boost_1_80_0.tar.bz2
             mkdir boost-install
@@ -111,10 +112,8 @@ jobs:
             tar -xzvf root_v6.26.06.Linux-ubuntu22-x86_64-gcc11.2.tar.gz
             source root/bin/thisroot.sh
         - name: Run build-wrapper
-          # wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
-          # sudo sh cuda_11.8.0_520.61.05_linux.run
           # cmake -S . -B build -D TRACCC_BUILD_CUDA=TRUE -D DETRAY_BUILD_CUDA=TRUE -D VECMEM_BUILD_CUDA_LIBRARY=TRUE
-          #cmake -S . -B ./build -D ROOT_DIR=/home/runner/work/traccc/traccc/root/cmake -D Boost_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/Boost-1.80.0 -D Boost_INCLUDE_DIR=home/runner/work/traccc/traccc/boost_install/include -D Boost_PROGRAM_OPTIONS_LIBRARY=/home/runner/work/traccc/traccc/boost_install/lib/libboost_program_options.so.1.80.0 -D boost_atomic_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_atomic-1.80.0 -D boost_filesystem_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_filesystem-1.80.0 -D boost_headers_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_headers-1.80.0 -D boost_program_options_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_program_options-1.80.0 -D boost_unit_test_framework-DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_unit_test_framework-1.80.0
+          # cmake -S . -B ./build -D ROOT_DIR=/home/runner/work/traccc/traccc/root/cmake -D Boost_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/Boost-1.80.0 -D Boost_INCLUDE_DIR=home/runner/work/traccc/traccc/boost_install/include -D Boost_PROGRAM_OPTIONS_LIBRARY=/home/runner/work/traccc/traccc/boost_install/lib/libboost_program_options.so.1.80.0 -D boost_atomic_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_atomic-1.80.0 -D boost_filesystem_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_filesystem-1.80.0 -D boost_headers_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_headers-1.80.0 -D boost_program_options_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_program_options-1.80.0 -D boost_unit_test_framework-DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_unit_test_framework-1.80.0
           run: |
             mkdir build
             cmake -S . -B ./build -D ROOT_DIR=/home/runner/work/traccc/traccc/root/cmake -D Boost_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/Boost-1.80.0 -D Boost_INCLUDE_DIR=home/runner/work/traccc/traccc/boost_install/include
