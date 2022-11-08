@@ -104,7 +104,8 @@ jobs:
           # source root/bin/thisroot.sh
           run: |
             sudo apt-get update
-            sudo apt-get -ys install g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev libssl-dev
+            sudo apt-get -ys install libxpm-dev 
+            npm install --global xpm@latest
             wget https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.bz2
             tar --bzip2 -xf boost_1_80_0.tar.bz2
             mkdir boost-install
