@@ -115,7 +115,7 @@ jobs:
             git clone --branch latest-stable --depth=1 https://github.com/root-project/root.git root_src
             mkdir root_build root_install
             cd root_build
-            cmake -DCMAKE_INSTALL_PREFIX=home/runner/work/traccc/traccc/root_install home/runner/work/traccc/traccc/root_src
+            cmake -DCMAKE_INSTALL_PREFIX=/home/runner/work/traccc/traccc/root_install /home/runner/work/traccc/traccc/root_src
             cmake --build . --target install
         - name: Run build-wrapper
           # cmake -S . -B build -D TRACCC_BUILD_CUDA=TRUE -D DETRAY_BUILD_CUDA=TRUE -D VECMEM_BUILD_CUDA_LIBRARY=TRUE
