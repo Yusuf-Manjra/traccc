@@ -97,7 +97,9 @@ jobs:
             echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
         - name: Get Dependencies
           run: |
-            sudo apt-get install dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev python libssl-dev
+            udo apt-get update
+            sudo apt-get -y install dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev \
+            libxft-dev libxext-dev python libssl-dev
             wget https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.bz2
             tar --bzip2 -xf boost_1_80_0.tar.bz2
             mkdir boost-install
