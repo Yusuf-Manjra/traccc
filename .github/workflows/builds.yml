@@ -103,9 +103,8 @@ jobs:
           # tar -xzvf root_v6.26.06.Linux-ubuntu22-x86_64-gcc11.2.tar.gz
           # source root/bin/thisroot.sh
           run: |
-            sudo apt-get update
-            sudo apt-get -ys install libxpm-dev 
-            npm install --global xpm@latest
+            sudo apt update
+            sudo apt -ys install libxpm-dev 
             wget https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.bz2
             tar --bzip2 -xf boost_1_80_0.tar.bz2
             mkdir boost-install
