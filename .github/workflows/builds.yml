@@ -96,7 +96,7 @@ jobs:
             unzip -o $HOME/.sonar/build-wrapper-linux-x86.zip -d $HOME/.sonar/
             echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
         - name: Get Dependancies For BOOST & ROOT + Check Locations
-        - run: |
+          run: |
             sudo apt update
             sudo apt install libx11-dev libxpm-dev libxft-dev libxext-dev libssl-dev
             dpkg -L libxpm-dev
@@ -108,6 +108,7 @@ jobs:
           # wget https://root.cern/download/root_v6.26.06.Linux-ubuntu22-x86_64-gcc11.2.tar.gz
           # tar -xzvf root_v6.26.06.Linux-ubuntu22-x86_64-gcc11.2.tar.gz
           # source root/bin/thisroot.sh
+        - name: Get & Build BOOST & ROOT
           run: |
             sudo apt update
             sudo apt install libx11-dev libxpm-dev libxft-dev libxext-dev libssl-dev
