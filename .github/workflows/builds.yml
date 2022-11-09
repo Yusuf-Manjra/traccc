@@ -104,7 +104,7 @@ jobs:
           # source root/bin/thisroot.sh
           run: |
             sudo apt update
-            sudo apt -ys install libxpm-dev 
+            sudo apt -ys install libx11-dev libxpm-dev libxft-dev libxext-dev libssl-dev
             wget https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.bz2
             tar --bzip2 -xf boost_1_80_0.tar.bz2
             mkdir boost-install
