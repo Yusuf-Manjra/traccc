@@ -122,16 +122,16 @@ jobs:
 
         - name: Get & Build BOOST & ROOT
           run: |
-            cd ../
+            cd /home/runner/work/traccc/
             wget https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.bz2
             tar --bzip2 -xf boost_1_80_0.tar.bz2
             mkdir boost-install
             cd ./boost_1_80_0
-            ./bootstrap.sh --prefix=/home/runner/work/traccc/traccc/boost_install --with-libraries=atomic,filesystem,headers,program_options,test
+            ./bootstrap.sh --prefix=/home/runner/work/traccc/boost_install --with-libraries=atomic,filesystem,headers,program_options,test
             sudo ./b2 install
             cd ../
             wget https://root.cern/download/root_v6.26.06.Linux-ubuntu20-x86_64-gcc9.4.tar.gz
-            tar -xzvf root_v6.26.06.Linux-ubuntu20-x86_64-gcc9.4.tar.gz
+            tar -xzf root_v6.26.06.Linux-ubuntu20-x86_64-gcc9.4.tar.gz
             source root/bin/thisroot.sh
 
         - name: Run build-wrapper
