@@ -96,22 +96,32 @@ jobs:
             unzip -o $HOME/.sonar/build-wrapper-linux-x86.zip -d $HOME/.sonar/
             echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
         - name: Get Dependancies For BOOST & ROOT + Check Locations
+          # Install All Dependancies commands 
+          # sudo apt install dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev python libssl-dev
           run: |
             sudo apt update
             sudo apt install libx11-dev libxpm-dev libxft-dev libxext-dev libssl-dev
             dpkg -L libxpm-dev
             dpkg -L libssl-dev
             dpkg -L libxext-dev
+
           # wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
           # sudo sh cuda_11.8.0_520.61.05_linux.run
-          # sudo apt-get install dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev python libssl-dev
-          # wget https://root.cern/download/root_v6.26.06.Linux-ubuntu22-x86_64-gcc11.2.tar.gz
-          # tar -xzvf root_v6.26.06.Linux-ubuntu22-x86_64-gcc11.2.tar.gz
+
+          # ROOT FROM BINARY DOWNLOAD
+          # wget https://root.cern/download/root_v6.26.06.Linux-ubuntu20-x86_64-gcc9.4.tar.gz
+          # tar -xzvf root_v6.26.06.Linux-ubuntu20-x86_64-gcc9.4.tar.gz
           # source root/bin/thisroot.sh
+
+          # ROOT FROM SOURCE BUILD
+          # git clone --branch latest-stable --depth=1 https://github.com/root-project/root.git root_src
+          # mkdir root_build root
+          # cd root_build
+          # cmake -DCMAKE_INSTALL_PREFIX=/home/runner/work/traccc/traccc/root /home/runner/work/traccc/traccc/root_src
+          # cmake --build . --target install
+
         - name: Get & Build BOOST & ROOT
           run: |
-            sudo apt update
-            sudo apt install libx11-dev libxpm-dev libxft-dev libxext-dev libssl-dev
             wget https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.bz2
             tar --bzip2 -xf boost_1_80_0.tar.bz2
             mkdir boost-install
@@ -119,18 +129,17 @@ jobs:
             ./bootstrap.sh --prefix=/home/runner/work/traccc/traccc/boost_install --with-libraries=atomic,filesystem,headers,program_options,test
             sudo ./b2 install
             cd ../
-            git clone --branch latest-stable --depth=1 https://github.com/root-project/root.git root_src
-            mkdir root_build root_install
-            cd root_build
-            cmake -DCMAKE_INSTALL_PREFIX=/home/runner/work/traccc/traccc/root_install /home/runner/work/traccc/traccc/root_src
-            cmake --build . --target install
+            wget https://root.cern/download/root_v6.26.06.Linux-ubuntu20-x86_64-gcc9.4.tar.gz
+            tar -xzvf root_v6.26.06.Linux-ubuntu20-x86_64-gcc9.4.tar.gz
+            source root/bin/thisroot.sh
+
         - name: Run build-wrapper
           # cmake -S . -B build -D TRACCC_BUILD_CUDA=TRUE -D DETRAY_BUILD_CUDA=TRUE -D VECMEM_BUILD_CUDA_LIBRARY=TRUE
           # cmake -S . -B ./build -D ROOT_DIR=/home/runner/work/traccc/traccc/root/cmake -D Boost_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/Boost-1.80.0 -D Boost_INCLUDE_DIR=home/runner/work/traccc/traccc/boost_install/include -D Boost_PROGRAM_OPTIONS_LIBRARY=/home/runner/work/traccc/traccc/boost_install/lib/libboost_program_options.so.1.80.0 -D boost_atomic_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_atomic-1.80.0 -D boost_filesystem_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_filesystem-1.80.0 -D boost_headers_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_headers-1.80.0 -D boost_program_options_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_program_options-1.80.0 -D boost_unit_test_framework-DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/boost_unit_test_framework-1.80.0
           run: |
             mkdir build
             cmake -S . -B ./build -D ROOT_DIR=/home/runner/work/traccc/traccc/root_install/cmake -D Boost_DIR=/home/runner/work/traccc/traccc/boost_install/lib/cmake/Boost-1.80.0 -D Boost_INCLUDE_DIR=home/runner/work/traccc/traccc/boost_install/include
-            build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build --clean-first
+            build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build --clean-first -j2
         - name: Run sonar-scanner
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
