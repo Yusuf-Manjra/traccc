@@ -4,7 +4,7 @@
 #
 # Mozilla Public License Version 2.0
 
-name: Sonar Cloud
+name: Sonar Cloud CUDA (SelfHost)
 
 on:
   push:
