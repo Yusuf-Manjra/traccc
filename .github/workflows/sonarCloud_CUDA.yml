@@ -85,7 +85,8 @@ jobs:
             cd ../
             mkdir -p ./traccc-build && cd ./traccc-build
             cmake -S ../traccc -B . -D ROOT_DIR=/home/yusuf/usr/local/root/cmake -D Boost_DIR=/home/yusuf/usr/local/boost/lib/cmake/Boost-1.79.0 -D Boost_INCLUDE_DIR=/home/yusuf/usr/local/boost/inlcude -D CMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -D TRACCC_BUILD_CUDA=TRUE -D DETRAY_BUILD_CUDA=TRUE -D VECMEM_BUILD_CUDA_LIBRARY=TRUE
-            build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build . --clean-first -j $(nproc)
+            cd ../traccc
+            build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build ../traccc-build --clean-first -j $(nproc)
         - name: Run sonar-scanner
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
