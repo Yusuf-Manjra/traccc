@@ -99,7 +99,7 @@ jobs:
             mkdir traccc-build && cd ./traccc-build
             cmake -S ../traccc -B . -D ROOT_DIR=/home/runner/work/traccc/root/cmake -D Boost_DIR=/home/runner/work/traccc/boost_install/lib/cmake/Boost-1.80.0
             cd ../traccc
-            build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build --clean-first -j $(nproc)
+            build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build ../traccc-build --clean-first -j $(nproc)
         - name: Run sonar-scanner
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
