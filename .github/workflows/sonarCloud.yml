@@ -95,8 +95,10 @@ jobs:
           # USE FOR CUDA BUILD
           # cmake -S . -B build -D TRACCC_BUILD_CUDA=TRUE -D DETRAY_BUILD_CUDA=TRUE -D VECMEM_BUILD_CUDA_LIBRARY=TRUE
           run: |
-            mkdir build
-            cmake -S . -B ./build -D ROOT_DIR=/home/runner/work/traccc/root/cmake -D Boost_DIR=/home/runner/work/traccc/boost_install/lib/cmake/Boost-1.80.0
+            cd ../
+            mkdir traccc-build && cd ./traccc-build
+            cmake -S ../traccc -B . -D ROOT_DIR=/home/runner/work/traccc/root/cmake -D Boost_DIR=/home/runner/work/traccc/boost_install/lib/cmake/Boost-1.80.0
+            cd ../traccc
             build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build --clean-first -j $(nproc)
         - name: Run sonar-scanner
           env:
