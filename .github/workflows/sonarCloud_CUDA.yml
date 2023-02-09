@@ -8,6 +8,8 @@ name: Sonar Cloud CUDA (SelfHost)
 
 on:
   push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
