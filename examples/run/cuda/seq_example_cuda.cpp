@@ -9,6 +9,7 @@
 #include "traccc/clusterization/clusterization_algorithm.hpp"
 #include "traccc/clusterization/spacepoint_formation.hpp"
 #include "traccc/cuda/clusterization/clusterization_algorithm.hpp"
+#include "traccc/cuda/clusterization/clusterization_cca_algorithm.hpp"
 #include "traccc/cuda/seeding/seeding_algorithm.hpp"
 #include "traccc/cuda/seeding/track_params_estimation.hpp"
 #include "traccc/cuda/utils/stream.hpp"
@@ -80,6 +81,7 @@ int seq_run(const traccc::full_tracking_input_config& i_cfg,
     traccc::device::container_h2d_copy_alg<traccc::cell_container_types>
         cell_h2d{mr, async_copy};
     traccc::cuda::clusterization_algorithm ca_cuda{mr, async_copy, stream};
+    //traccc::cuda::clusterization_cca_algorithm ca_cuda(mr, stream);
     traccc::cuda::seeding_algorithm sa_cuda(mr);
     traccc::cuda::track_params_estimation tp_cuda(mr);
     traccc::device::container_d2h_copy_alg<traccc::spacepoint_container_types>

@@ -9,8 +9,10 @@
 #include "../utils/utils.hpp"
 #include "traccc/cuda/clusterization/clusterization_algorithm.hpp"
 #include "traccc/cuda/utils/definitions.hpp"
+#include "traccc/cuda/clusterization/clusterization_kernels.cuh"
 
 // Project include(s)
+#include "traccc/cuda/cca/component_connection.hpp"
 #include "traccc/clusterization/device/connect_components.hpp"
 #include "traccc/clusterization/device/count_cluster_cells.hpp"
 #include "traccc/clusterization/device/create_measurements.hpp"
@@ -18,6 +20,7 @@
 #include "traccc/clusterization/device/form_spacepoints.hpp"
 #include "traccc/cuda/utils/make_prefix_sum_buff.hpp"
 #include "traccc/device/fill_prefix_sum.hpp"
+#include "traccc/cuda/cca/component_connection.hpp"
 
 // Vecmem include(s).
 #include <vecmem/utils/copy.hpp>
@@ -26,7 +29,7 @@
 #include <algorithm>
 
 namespace traccc::cuda {
-namespace kernels {
+/*namespace kernels {
 
 __global__ void find_clusters(
     const cell_container_types::const_view cells_view,
@@ -83,6 +86,7 @@ __global__ void form_spacepoints(
 }
 
 }  // namespace kernels
+*/
 
 clusterization_algorithm::clusterization_algorithm(
     const traccc::memory_resource& mr, vecmem::copy& copy, stream& str)
