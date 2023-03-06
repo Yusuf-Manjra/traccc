@@ -364,14 +364,9 @@ clusterization_algorithm::output_type clusterization_algorithm::operator()(
     const alt_cell_collection_types::view::size_type num_cells =
         m_copy.get_size(cells);
 
-<<<<<<< HEAD
-    // Work block size for kernel execution
-    const std::size_t threadsPerBlock = 512;
-=======
     // Create result object for the CCL kernel with size overestimation
     alt_measurement_collection_types::buffer measurements_buffer(num_cells,
                                                                  m_mr.main);
->>>>>>> upstream/main
 
     // Counter for number of measurements
     vecmem::unique_alloc_ptr<unsigned int> num_measurements_device =
