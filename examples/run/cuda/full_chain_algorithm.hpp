@@ -13,7 +13,7 @@
 #include "traccc/cuda/seeding/track_params_estimation.hpp"
 #include "traccc/cuda/utils/stream.hpp"
 #include "traccc/device/container_h2d_copy_alg.hpp"
-#include "traccc/edm/cell.hpp"
+#include "traccc/edm/alt_cell.hpp"
 #include "traccc/utils/algorithm.hpp"
 
 // VecMem include(s).
@@ -33,15 +33,19 @@ namespace traccc::cuda {
 ///
 class full_chain_algorithm
     : public algorithm<bound_track_parameters_collection_types::host(
-          const cell_container_types::host&)> {
+          const alt_cell_collection_types::host&,
+          const cell_module_collection_types::host&)> {
 
     public:
     /// Algorithm constructor
     ///
     /// @param mr The memory resource to use for the intermediate and result
     ///           objects
+    /// @param target_cells_per_partition The average number of cells in each
+    /// partition.
     ///
-    full_chain_algorithm(vecmem::memory_resource& host_mr);
+    full_chain_algorithm(vecmem::memory_resource& host_mr,
+                         const unsigned short target_cells_per_partiton);
 
     /// Copy constructor
     ///
@@ -62,7 +66,8 @@ class full_chain_algorithm
     /// @return The track parameters reconstructed
     ///
     output_type operator()(
-        const cell_container_types::host& cells) const override;
+        const alt_cell_collection_types::host& cells,
+        const cell_module_collection_types::host& modules) const override;
 
     private:
     /// Host memory resource
@@ -79,8 +84,9 @@ class full_chain_algorithm
     /// @name Sub-algorithms used by this full-chain algorithm
     /// @{
 
-    /// Host->Device cell copy algorithm
-    device::container_h2d_copy_alg<cell_container_types> m_host2device;
+    /// The average number of cells in each partition.
+    /// Adapt to different GPUs' capabilities.
+    unsigned short m_target_cells_per_partition;
     /// Clusterization algorithm
     clusterization_algorithm m_clusterization;
     /// Seeding algorithm
