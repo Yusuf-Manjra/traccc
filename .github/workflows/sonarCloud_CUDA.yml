@@ -98,7 +98,7 @@ jobs:
             sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
         - name: Run NSYS on Most Current Code
           env:
-            TRACCC_TEST_DATA_DIR: /home/yusuf/atlas-project/traccc/data
+            TRACCC_TEST_DATA_DIR: /home/yusuf/atlas-project/traccc-projects/traccc/data
           run: |
             TRACCC_SHA=$(git rev-parse --short "$GITHUB_SHA")
             echo $TRACCC_SHA
