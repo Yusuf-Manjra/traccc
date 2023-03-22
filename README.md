@@ -153,7 +153,7 @@ flowchart LR
     linkStyle 24 stroke: brown;
 ```
 
-## Requirements and dependencies 
+## Requirements and dependencies
 
 ### OS & compilers:
 
@@ -178,10 +178,6 @@ and toolchains that are currently known to work (last updated 2022/01/24):
 | Build | OS | gcc | cuda | comment |
 | --- | --- | --- | --- | --- |
 | CUDA | Ubuntu 20.04   | 9.3.0 | 11.5 | runs on CI |
-
-### Data directory
-
-The `data` directory is a submodule hosted as `git lfs` on `https://gitlab.cern.ch/acts/traccc-data`
 
 ### Prerequisites
 
@@ -209,7 +205,7 @@ cmake --build <build_directory> <options>
 
 ### Build options
 
-| Option | Description | 
+| Option | Description |
 | --- | --- |
 | TRACCC_BUILD_CUDA  | Build the CUDA sources included in traccc |
 | TRACCC_BUILD_SYCL  | Build the SYCL sources included in traccc |
@@ -228,7 +224,7 @@ cmake --build <build_directory> <options>
 ### cpu reconstruction chain
 
 ```sh
-<build_directory>/bin/traccc_seq_example --detector_file=tml_detector/trackml-detector.csv --digitization_config_file=tml_detector/default-geometric-config-generic.json --input_directory=tml_pixels/ --events=10 
+<build_directory>/bin/traccc_seq_example --detector_file=tml_detector/trackml-detector.csv --digitization_config_file=tml_detector/default-geometric-config-generic.json --input_directory=tml_pixels/ --events=10
 ```
 
 ### cuda reconstruction chain

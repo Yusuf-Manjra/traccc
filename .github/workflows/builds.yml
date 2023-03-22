@@ -12,6 +12,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   builds:
     name: ${{ matrix.platform.name }}-${{ matrix.build }}
@@ -39,11 +43,13 @@ jobs:
         shell: bash
     steps:
       - name: Dependencies
-        run: apt-get install -y git-lfs
+        run: apt-get install -y git-lfs wget
       - uses: actions/checkout@v2
         with:
           submodules: true
           lfs: true
+      - name: Download data files
+        run: data/traccc_data_get_files.sh
       - name: Configure
         run: |
           source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.platform.name }}
