@@ -6,8 +6,6 @@
 
 # Declare the cpu algorithm test(s).
 
-set(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} --coverage")
-
 traccc_add_test(cpu
     "compare_with_acts_seeding.cpp"
     "seq_single_module.cpp"
