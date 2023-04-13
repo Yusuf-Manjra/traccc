@@ -29,11 +29,12 @@ traccc_add_test(
     # Define the sources for the test.
     test_basic.cu
     test_cca.cpp
-    test_copy_algs.cpp
     test_kalman_filter.cpp
     test_thrust.cu
+    test_sync.cu
 
     LINK_LIBRARIES
+    CUDA::cudart
     GTest::gtest
     vecmem::cuda
     detray::core
