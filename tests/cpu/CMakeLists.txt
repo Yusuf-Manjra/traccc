@@ -4,8 +4,9 @@
 #
 # Mozilla Public License Version 2.0
 
-# Declare the cpu algorithm test(s).
+set(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} --coverage")
 
+# Declare the cpu algorithm test(s).
 traccc_add_test(cpu
     "compare_with_acts_seeding.cpp"
     "seq_single_module.cpp"

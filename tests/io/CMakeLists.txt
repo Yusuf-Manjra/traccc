@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+set(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} --coverage")
+
 # Declare the io library test(s).
 traccc_add_test( io 
    "test_binary.cpp" 

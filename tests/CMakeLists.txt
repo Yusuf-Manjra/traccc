@@ -7,8 +7,6 @@
 # Project include(s).
 include( traccc-compiler-options-cpp )
 
-set(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} --coverage")
-
 # Set up a common library, shared by all of the tests.
 add_library( traccc_tests_common STATIC
     "common/tests/atlas_cuts.hpp"
