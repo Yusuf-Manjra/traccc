@@ -13,7 +13,6 @@
 #include "traccc/efficiency/track_filter.hpp"
 #include "traccc/io/read_geometry.hpp"
 #include "traccc/io/read_spacepoints.hpp"
-#include "traccc/io/read_spacepoints_alt.hpp"
 #include "traccc/options/common_options.hpp"
 #include "traccc/options/handle_argument_errors.hpp"
 #include "traccc/options/seeding_input_options.hpp"
@@ -107,7 +106,7 @@ int seq_run(const traccc::seeding_input_config& i_cfg,
                 traccc::performance::timer t("Hit reading  (cpu)",
                                              elapsedTimes);
                 // Read the hits from the relevant event file
-                reader_output = traccc::io::read_spacepoints_alt(
+                reader_output = traccc::io::read_spacepoints(
                     event, common_opts.input_directory, surface_transforms,
                     common_opts.input_data_format, &host_mr);
             }  // stop measuring hit reading timer
@@ -129,6 +128,7 @@ int seq_run(const traccc::seeding_input_config& i_cfg,
                 traccc::performance::timer t("Seeding (cuda)", elapsedTimes);
                 // Reconstruct the spacepoints into seeds.
                 seeds_cuda_buffer = sa_cuda(spacepoints_cuda_buffer);
+                stream.synchronize();
             }  // stop measuring seeding cuda timer
 
             // CPU
@@ -149,6 +149,7 @@ int seq_run(const traccc::seeding_input_config& i_cfg,
                                              elapsedTimes);
                 params_cuda_buffer =
                     tp_cuda(spacepoints_cuda_buffer, seeds_cuda_buffer);
+                stream.synchronize();
             }  // stop measuring track params cuda timer
             // CPU
 
