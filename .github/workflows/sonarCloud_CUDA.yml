@@ -71,7 +71,7 @@ jobs:
             cmake -S ../traccc -B . -D ROOT_DIR=/home/yusuf/usr/local/root/cmake -D Boost_DIR=/home/yusuf/usr/local/boost/lib/cmake/Boost-1.79.0 -D Boost_INCLUDE_DIR=/home/yusuf/usr/local/boost/inlcude -D CMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -D TRACCC_BUILD_CUDA=TRUE -D DETRAY_BUILD_CUDA=TRUE -D VECMEM_BUILD_CUDA_LIBRARY=TRUE -D CMAKE_CUDA_ARCHITECTURES="52;75" -D TRACCC_BUILD_TESTING=TRUE
             cd ../traccc 
             build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build ../traccc-build -j4 --clean-first
-
+  
         - name: Run tests to generate coverage statistics
           env:
             TRACCC_TEST_DATA_DIR: /home/yusuf/atlas-project/traccc-projects/traccc/data
@@ -80,7 +80,7 @@ jobs:
         - name: Collect coverage into one XML report
           run: |
             gcovr --sonarqube > coverage.xml
-
+            
         - name: Run sonar-scanner
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
